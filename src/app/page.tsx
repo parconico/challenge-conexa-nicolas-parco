@@ -1,103 +1,150 @@
-import Image from "next/image";
+"use client";
+
+import CharacterGrid from "@/components/character-grid";
+import EpisodeList from "@/components/episode-list";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Episode } from "@/lib/types";
+import { Character } from "@/types/character.interface";
+
+import { useEffect, useState } from "react";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [character1, setCharacter1] = useState<Character | null>(null);
+  const [character2, setCharacter2] = useState<Character | null>(null);
+  const [character1Episodes, setCharacter1Episodes] = useState<Episode[]>([]);
+  const [character2Episodes, setCharacter2Episodes] = useState<Episode[]>([]);
+  const [sharedEpisodes, setSharedEpisodes] = useState<Episode[]>([]);
+  const [loading, setLoading] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    const fetchEpisodes = async () => {
+      if (!character1 || !character2) return;
+
+      setLoading(true);
+
+      try {
+        // Fetch episodes character 1
+        const char1EpisodeUrls = character1.episode || [];
+        const char1EpisodeIds = char1EpisodeUrls
+          .map((url) => url.split("/").pop())
+          .filter(Boolean) as string[];
+
+        // Fetch episodes for character 2
+        const char2EpisodeUrls = character2.episode || [];
+        const char2EpisodeIds = char2EpisodeUrls
+          .map((url) => url.split("/").pop())
+          .filter(Boolean) as string[];
+
+        // Fetch shared episodes
+        const char1Set = new Set(char1EpisodeIds);
+        const char2Set = new Set(char2EpisodeIds);
+
+        const sharedIds = [...char1Set].filter((id) => char2Set.has(id));
+        const char1OnlyIds = [...char1Set].filter((id) => !char2Set.has(id));
+        const char2OnlyIds = [...char2Set].filter((id) => !char1Set.has(id));
+
+        // Fetch episode details
+        const fetchEpisodeDetails = async (
+          ids: string[]
+        ): Promise<Episode[]> => {
+          if (ids.length === 0) return [];
+
+          const url =
+            ids.length === 1
+              ? `https://rickandmortyapi.com/api/episode/${ids[0]}`
+              : `https://rickandmortyapi.com/api/episode/${ids.join(",")}`;
+
+          const response = await fetch(url);
+          const data = await response.json();
+
+          //Handlr single episode response
+          return Array.isArray(data) ? data : [data];
+        };
+        const [char1OnlyEpisodes, char2OnlyEpisodes, sharedEpisodesData] =
+          await Promise.all([
+            fetchEpisodeDetails(char1OnlyIds),
+            fetchEpisodeDetails(char2OnlyIds),
+            fetchEpisodeDetails(sharedIds),
+          ]);
+        setCharacter1Episodes(char1OnlyEpisodes);
+        setCharacter2Episodes(char2OnlyEpisodes);
+        setSharedEpisodes(sharedEpisodesData);
+      } catch (error) {
+        console.error("Error fetching episodes:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEpisodes();
+  }, [character1, character2]);
+
+  return (
+    <main className="container mx-auto p-4">
+      <h1 className="text-3xl font-bold text-center my-6">
+        Ricky and Morty Character Comparison
+      </h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div>
+          <h2 className="text-2xl font-bold mb-4">Character #1</h2>
+          <CharacterGrid
+            onSelectCharacter={setCharacter1}
+            selectedCharacter={character1}
+          />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+        <div>
+          <h2 className="text-2xl font-bold mb-4">Character #2</h2>
+          <CharacterGrid
+            onSelectCharacter={setCharacter2}
+            selectedCharacter={character2}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+        </div>
+      </div>
+
+      <Separator className="my-8" />
+
+      {character1 && character2 ? (
+        <Tabs defaultValue="character1" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="character1">
+              {character1.name} - Only Episodes
+            </TabsTrigger>
+            <TabsTrigger value="shared">Shared Episodes</TabsTrigger>
+            <TabsTrigger value="character2">
+              {character2.name} - Only Episodes
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="character1">
+            <div className="border rounded-lg p-4">
+              <h3>{character1.name} - Only Episodes</h3>
+              <EpisodeList episodes={character1Episodes} loading={loading} />
+            </div>
+          </TabsContent>
+          <TabsContent value="shared">
+            <div className="border rounded-lg p-4">
+              <h3 className="text-xl font-semibold mb-4">
+                Characters #{character1.name} & {character2.name} - Shared
+                Episodes
+              </h3>
+              <EpisodeList episodes={sharedEpisodes} loading={loading} />
+            </div>
+          </TabsContent>
+          <TabsContent value="character2">
+            <div className="border rounded-lg p-4">
+              <h3 className="text-xl font-semibold mb-4">
+                {character2.name} - Only Episodes
+              </h3>
+              <EpisodeList episodes={character2Episodes} loading={loading} />
+            </div>
+          </TabsContent>
+        </Tabs>
+      ) : (
+        <div className="text-center p-8 border rounded-lg">
+          <p className="text-lg text-muted-foreground">
+            Selecciona dos personajes para ver sus episodios
+          </p>
+        </div>
+      )}
+    </main>
   );
 }
