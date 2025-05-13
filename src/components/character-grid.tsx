@@ -90,7 +90,7 @@ export default function CharacterGrid({
         >
           <ChevronLeft className="h-4 w-4 mr-2" /> Anterior
         </Button>
-        <span className="text-sm text-muted-foreground">
+        <span className="text-sm text-white font-semibold">
           Página {page} de {info.pages}
         </span>
         <Button

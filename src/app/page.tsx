@@ -142,7 +142,7 @@ export default function Home() {
   return (
     <main className="container mx-auto p-4">
       <h1 className="text-3xl font-bold text-center my-6 flex flex-col gap-3 text-white">
-        <span className="text-sm font-medium  text-white">
+        <span className="text-[16px] font-medium  text-white">
           By Nicolas Parco
         </span>
         Rick and Morty Character Comparison{" "}
