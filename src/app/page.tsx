@@ -141,9 +141,13 @@ export default function Home() {
 
   return (
     <main className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold text-center my-6">
-        Ricky and Morty Character Comparison
+      <h1 className="text-3xl font-bold text-center my-6 flex flex-col gap-3">
+        <span className="text-sm font-medium text-neutral-700">
+          By Nicolas Parco
+        </span>
+        Ricky and Morty Character Comparison{" "}
       </h1>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div>
           <h2 className="text-2xl font-bold mb-4">Character #1</h2>
