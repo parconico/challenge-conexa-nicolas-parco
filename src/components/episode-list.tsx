@@ -38,7 +38,10 @@ export default function EpisodeList({ episodes, loading }: EpisodeListProps) {
   return (
     <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
       {episodes.map((episode) => (
-        <Card key={episode.id} className="hover:bg-accent/50 transition-colors">
+        <Card
+          key={episode.id}
+          className="hover:bg-accent/50 transition-colors shadow-lg border border-neutral-300"
+        >
           <CardContent className="p-4">
             <div className="flex flex-col md:flex-row md:justify-between">
               <div className="flex justify-between items-start">

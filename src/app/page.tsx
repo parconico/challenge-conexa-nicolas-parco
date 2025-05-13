@@ -141,8 +141,8 @@ export default function Home() {
 
   return (
     <main className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold text-center my-6 flex flex-col gap-3">
-        <span className="text-sm font-medium text-neutral-700">
+      <h1 className="text-3xl font-bold text-center my-6 flex flex-col gap-3 text-white">
+        <span className="text-sm font-medium  text-white">
           By Nicolas Parco
         </span>
         Rick and Morty Character Comparison{" "}
@@ -150,14 +150,14 @@ export default function Home() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div>
-          <h2 className="text-2xl font-bold mb-4">Character #1</h2>
+          <h2 className="text-2xl font-bold mb-4 text-white">Character #1</h2>
           <CharacterGrid
             onSelectCharacter={setCharacter1}
             selectedCharacter={character1}
           />
         </div>
         <div>
-          <h2 className="text-2xl font-bold mb-4">Character #2</h2>
+          <h2 className="text-2xl font-bold mb-4 text-white">Character #2</h2>
           <CharacterGrid
             onSelectCharacter={setCharacter2}
             selectedCharacter={character2}
@@ -176,21 +176,21 @@ export default function Home() {
 
       {character1 && character2 ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="border rounded-lg p-4">
+          <div className="border rounded-lg p-4 bg-white shadow-xl">
             <h3 className="text-xl font-semibold mb-4">
               {character1.name} - Only Episodes
             </h3>
             <EpisodeList episodes={character1Episodes} loading={loading} />
           </div>
 
-          <div className="border rounded-lg p-4">
+          <div className="border rounded-lg p-4 bg-white shadow-xl">
             <h3 className="text-xl font-semibold mb-4">
               {character1.name} & {character2.name} - Shared Episodes
             </h3>
             <EpisodeList episodes={sharedEpisodes} loading={loading} />
           </div>
 
-          <div className="border rounded-lg p-4">
+          <div className="border rounded-lg p-4 bg-white shadow-xl">
             <h3 className="text-xl font-semibold mb-4">
               {character2.name} - Only Episodes
             </h3>
@@ -198,7 +198,7 @@ export default function Home() {
           </div>
         </div>
       ) : (
-        <div className="text-center p-8 border rounded-lg">
+        <div className="text-center p-8 border rounded-lg bg-white shadow-xl">
           <p className="text-lg text-muted-foreground">
             Selecciona dos personajes para ver sus episodios
           </p>

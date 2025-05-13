@@ -25,9 +25,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased  `}
       >
-        {children}
+        <div className="relative min-h-screen bg-[url('/rickandmorty.jpg')] bg-cover bg-center">
+          <div className="absolute inset-0 bg-black opacity-25 z-0" />
+          <main className="relative z-10">{children}</main>
+        </div>
       </body>
     </html>
   );

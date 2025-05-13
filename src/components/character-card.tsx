@@ -26,7 +26,7 @@ export default function CharacterCard({
   return (
     <Card
       className={cn(
-        "cursor-pointer transition-all hover:shadow-md relative overflow-hidden",
+        "cursor-pointer transition-all hover:shadow-2xl hover:scale-105 relative overflow-hidden",
         isSelected ? "ring-2 ring-primary" : ""
       )}
       onClick={onClick}
