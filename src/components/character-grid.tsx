@@ -66,7 +66,7 @@ export default function CharacterGrid({
                   key={index}
                   className="border rounded-lg p-4 flex flex-col"
                 >
-                  <Skeleton className="h-32 w-full rounded-md mb-2" />
+                  <Skeleton className="h-12 w-full rounded-md mb-2" />
                   <Skeleton className="h-4 w-3/4 mb-2" />
                   <Skeleton className="h-4 w-1/2" />
                 </div>
