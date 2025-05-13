@@ -18,8 +18,8 @@ export default function EpisodeList({ episodes, loading }: EpisodeListProps) {
           .map((_, index) => (
             <Card key={index}>
               <CardContent>
-                <Skeleton className="h-4 w-3/4 mb-2" />
-                <Skeleton className="h-4 w-1/2" />
+                <Skeleton data-testid="skeleton" className="h-4 w-3/4 mb-2" />
+                <Skeleton data-testid="skeleton" className="h-4 w-1/2" />
               </CardContent>
             </Card>
           ))}
