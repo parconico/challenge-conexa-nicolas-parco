@@ -27,7 +27,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased  `}
       >
-        <div className="relative min-h-screen bg-[url('/rickandmorty.jpg')] bg-cover bg-center">
+        <div className="relative min-h-screen bg-fixed bg-[url('/rickandmorty.jpg')] bg-cover bg-center">
           <div className="absolute inset-0 bg-black opacity-25 z-0" />
           <main className="relative z-10">{children}</main>
         </div>
