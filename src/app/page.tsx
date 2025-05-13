@@ -2,10 +2,11 @@
 
 import CharacterGrid from "@/components/character-grid";
 import EpisodeList from "@/components/episode-list";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Episode } from "@/lib/types";
 import { Character } from "@/types/character.interface";
+import { AlertCircle } from "lucide-react";
 
 import { useEffect, useState } from "react";
 
@@ -16,67 +17,126 @@ export default function Home() {
   const [character2Episodes, setCharacter2Episodes] = useState<Episode[]>([]);
   const [sharedEpisodes, setSharedEpisodes] = useState<Episode[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
+  // Función para obtener todos los episodios de un personaje
+  const fetchAllEpisodes = async (
+    episodeUrls: string[]
+  ): Promise<Episode[]> => {
+    if (!episodeUrls || episodeUrls.length === 0) return [];
+
+    try {
+      // Extraer los IDs de los episodios de las URLs
+      const episodeIds = episodeUrls.map((url) => url.split("/").pop());
+
+      // Si no hay IDs, retornar array vacio
+      if (episodeIds.length === 0) return [];
+
+      //Si solo hay un episodio
+      if (episodeIds.length === 1) {
+        const response = await fetch(
+          `https://rickandmortyapi.com/api/episode/${episodeIds[0]}`
+        );
+        if (!response.ok) throw new Error(`Error: ${response.status}`);
+        const data = await response.json();
+        return [data];
+      }
+      // Para múltiples episodios, hacer peticiones en lotes
+      const batchSize = 20;
+      let allEpisodes: Episode[] = [];
+
+      for (let i = 0; i < episodeIds.length; i += batchSize) {
+        const batchIds = episodeIds.slice(i, i + batchSize);
+        const response = await fetch(
+          `https://rickandmortyapi.com/api/episode/${batchIds.join(",")}`
+        );
+
+        if (!response.ok) throw new Error(`Error: ${response.status}`);
+        const data = await response.json();
+
+        const episodeBatch = Array.isArray(data) ? data : [data];
+        allEpisodes = [...allEpisodes, ...episodeBatch];
+      }
+      return allEpisodes;
+    } catch (error) {
+      console.error("Error fetching episodes:", error);
+      throw error;
+    }
+  };
+
+  // Efecto para cargar los episodios cuando se seleccionan los personajes
   useEffect(() => {
-    const fetchEpisodes = async () => {
-      if (!character1 || !character2) return;
+    // Crear una variable para controlar si el componente está montado
+    let isMounted = true;
 
-      setLoading(true);
+    const loadEpisodes = async () => {
+      // Si no hay dos personajes seleccionados, no hacer nada
+      if (!character1 || !character2) {
+        if (isMounted) {
+          setCharacter1Episodes([]);
+          setCharacter2Episodes([]);
+          setSharedEpisodes([]);
+        }
+        return;
+      }
+      if (isMounted) {
+        setLoading(true);
+        setError("");
+      }
 
       try {
-        // Fetch episodes character 1
-        const char1EpisodeUrls = character1.episode || [];
-        const char1EpisodeIds = char1EpisodeUrls
-          .map((url) => url.split("/").pop())
-          .filter(Boolean) as string[];
+        // 1. Obtener TODOS los episodios de ambos personajes
+        const [allChar1Episodes, allChar2Episodes] = await Promise.all([
+          fetchAllEpisodes(character1.episode),
+          fetchAllEpisodes(character2.episode),
+        ]);
 
-        // Fetch episodes for character 2
-        const char2EpisodeUrls = character2.episode || [];
-        const char2EpisodeIds = char2EpisodeUrls
-          .map((url) => url.split("/").pop())
-          .filter(Boolean) as string[];
+        // Verificar si el componente sigue montado antes de actualizar el estado
+        if (!isMounted) return;
 
-        // Fetch shared episodes
-        const char1Set = new Set(char1EpisodeIds);
-        const char2Set = new Set(char2EpisodeIds);
+        // 2. Crear conjuntos de IDs para facilitar la comparación
+        // const char1EpisodeIds = new Set(allChar1Episodes.map((ep) => ep.id));
+        const char2EpisodeIds = new Set(allChar2Episodes.map((ep) => ep.id));
 
-        const sharedIds = [...char1Set].filter((id) => char2Set.has(id));
-        const char1OnlyIds = [...char1Set].filter((id) => !char2Set.has(id));
-        const char2OnlyIds = [...char2Set].filter((id) => !char1Set.has(id));
+        // 3. Encontrar los episodios compartidos
+        const sharedEps = allChar1Episodes.filter((ep) =>
+          char2EpisodeIds.has(ep.id)
+        );
 
-        // Fetch episode details
-        const fetchEpisodeDetails = async (
-          ids: string[]
-        ): Promise<Episode[]> => {
-          if (ids.length === 0) return [];
+        // 4. IMPORTANTE: Ahora NO se filtra los episodios compartidos de las listas individuales
+        // Usamos todos los episodios de cada personaje
 
-          const url =
-            ids.length === 1
-              ? `https://rickandmortyapi.com/api/episode/${ids[0]}`
-              : `https://rickandmortyapi.com/api/episode/${ids.join(",")}`;
-
-          const response = await fetch(url);
-          const data = await response.json();
-
-          //Handlr single episode response
-          return Array.isArray(data) ? data : [data];
-        };
-        const [char1OnlyEpisodes, char2OnlyEpisodes, sharedEpisodesData] =
-          await Promise.all([
-            fetchEpisodeDetails(char1OnlyIds),
-            fetchEpisodeDetails(char2OnlyIds),
-            fetchEpisodeDetails(sharedIds),
-          ]);
-        setCharacter1Episodes(char1OnlyEpisodes);
-        setCharacter2Episodes(char2OnlyEpisodes);
-        setSharedEpisodes(sharedEpisodesData);
+        // 5. Actualizar el estado con los episodios
+        if (isMounted) {
+          setCharacter1Episodes(allChar1Episodes);
+          setSharedEpisodes(sharedEps);
+          setCharacter2Episodes(allChar2Episodes);
+        }
+        console.log("Character 1 episodes:", allChar1Episodes.length);
+        console.log("Shared episodes:", sharedEps.length);
+        console.log("Character 2 episodes:", allChar2Episodes.length);
       } catch (error) {
-        console.error("Error fetching episodes:", error);
+        console.error("Error loading episodes:", error);
+
+        if (isMounted) {
+          setError(`Error al cargar episodios: ${error}`);
+
+          // Limpiar los episodios en caso de error
+          setCharacter1Episodes([]);
+          setCharacter2Episodes([]);
+          setSharedEpisodes([]);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
-    fetchEpisodes();
+    loadEpisodes();
+    // Función de limpieza para evitar actualizar el estado si el componente se desmonta
+    return () => {
+      isMounted = false;
+    };
   }, [character1, character2]);
 
   return (
@@ -103,41 +163,36 @@ export default function Home() {
 
       <Separator className="my-8" />
 
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
       {character1 && character2 ? (
-        <Tabs defaultValue="character1" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="character1">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="border rounded-lg p-4">
+            <h3 className="text-xl font-semibold mb-4">
               {character1.name} - Only Episodes
-            </TabsTrigger>
-            <TabsTrigger value="shared">Shared Episodes</TabsTrigger>
-            <TabsTrigger value="character2">
+            </h3>
+            <EpisodeList episodes={character1Episodes} loading={loading} />
+          </div>
+
+          <div className="border rounded-lg p-4">
+            <h3 className="text-xl font-semibold mb-4">
+              {character1.name} & {character2.name} - Shared Episodes
+            </h3>
+            <EpisodeList episodes={sharedEpisodes} loading={loading} />
+          </div>
+
+          <div className="border rounded-lg p-4">
+            <h3 className="text-xl font-semibold mb-4">
               {character2.name} - Only Episodes
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="character1">
-            <div className="border rounded-lg p-4">
-              <h3>{character1.name} - Only Episodes</h3>
-              <EpisodeList episodes={character1Episodes} loading={loading} />
-            </div>
-          </TabsContent>
-          <TabsContent value="shared">
-            <div className="border rounded-lg p-4">
-              <h3 className="text-xl font-semibold mb-4">
-                Characters #{character1.name} & {character2.name} - Shared
-                Episodes
-              </h3>
-              <EpisodeList episodes={sharedEpisodes} loading={loading} />
-            </div>
-          </TabsContent>
-          <TabsContent value="character2">
-            <div className="border rounded-lg p-4">
-              <h3 className="text-xl font-semibold mb-4">
-                {character2.name} - Only Episodes
-              </h3>
-              <EpisodeList episodes={character2Episodes} loading={loading} />
-            </div>
-          </TabsContent>
-        </Tabs>
+            </h3>
+            <EpisodeList episodes={character2Episodes} loading={loading} />
+          </div>
+        </div>
       ) : (
         <div className="text-center p-8 border rounded-lg">
           <p className="text-lg text-muted-foreground">

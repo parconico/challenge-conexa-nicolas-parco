@@ -3,6 +3,8 @@
 import { Character } from "@/types/character.interface";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
+import { CheckCircle } from "lucide-react";
 
 interface CharacterCardProps {
   character: Character;
@@ -21,14 +23,19 @@ export default function CharacterCard({
     unknown: "bg-gray-500",
   };
 
-  const cardClass = `cursor-pointer transition-all hover:shadow-md ${
-    isSelected ? "ring-2 ring-primary" : ""
-  }`;
-  const statusDotClass = `inline-block w-2 h-2 rounded-full mr-1 ${
-    statusColor[character.status]
-  }`;
   return (
-    <Card className={cardClass} onClick={onClick}>
+    <Card
+      className={cn(
+        "cursor-pointer transition-all hover:shadow-md relative overflow-hidden",
+        isSelected ? "ring-2 ring-primary" : ""
+      )}
+      onClick={onClick}
+    >
+      {isSelected && (
+        <div className="absolute top-2 right-2 z-10">
+          <CheckCircle className="h-5 w-5 text-primary bg-white rounded-full" />
+        </div>
+      )}
       <CardContent className="p-3 flex items-center space-x-3">
         <div className="flex-shrink-0">
           <Image
@@ -44,7 +51,12 @@ export default function CharacterCard({
             {character.name}
           </h3>
           <div className="flex items-center text-xs text-muted-foreground">
-            <span className={statusDotClass}></span>
+            <span
+              className={cn(
+                "inline-block w-2 h-2 rounded-full mr-1",
+                statusColor[character.status as keyof typeof statusColor]
+              )}
+            ></span>
             {character.status} - {character.species}
           </div>
         </div>
