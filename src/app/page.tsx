@@ -145,7 +145,7 @@ export default function Home() {
         <span className="text-sm font-medium text-neutral-700">
           By Nicolas Parco
         </span>
-        Ricky and Morty Character Comparison{" "}
+        Rick and Morty Character Comparison{" "}
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">

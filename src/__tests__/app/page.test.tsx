@@ -91,7 +91,7 @@ describe("Home Page", () => {
 
     // Check if title is rendered
     expect(
-      screen.getByText("Ricky and Morty Character Comparison")
+      screen.getByText("Rick and Morty Character Comparison")
     ).toBeInTheDocument();
 
     // Check if character grids are rendered
